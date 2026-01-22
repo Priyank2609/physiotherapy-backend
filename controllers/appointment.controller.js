@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const DoctorModel = require("../models/doctor.model");
 const Service = require("../models/service.model");
 const Appointment = require("../models/appointment.model");
-const { sendMail } = require("../utiles/mailer");
+const sendMail = require("../utiles/mailer");
 
 module.exports.createAppointment = async (req, res) => {
   try {

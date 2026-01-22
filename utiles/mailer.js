@@ -1,21 +1,30 @@
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-module.exports.sendMail = async (to, subject, htmlContent) => {
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.AUTH_EMAIL,
+    pass: process.env.AUTH_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
+const sendMail = async (to, subject, html) => {
   try {
-    const { data, error } = await resend.emails.send({
-      from: "Physioterapia Clinic <onboarding@resend.dev>",
-      to: to,
-      subject: subject,
-      html: htmlContent,
-    });
+    await transporter.sendMail({
+      from: '"Physioterapia Clinic" ',
 
-    if (error) {
-      return console.error("Resend API Error:", error);
-    }
-    console.log("Email sent successfully:", data);
+      to,
+      subject,
+      html,
+    });
+    console.log("Email sent successfully to", to);
   } catch (error) {
-    console.error("Resend Network Error:", error);
+    console.error("Error sending email:", error);
   }
 };
+
+module.exports = sendMail;
