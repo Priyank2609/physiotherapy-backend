@@ -2,7 +2,7 @@ const { Resend } = require("resend");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const sendMail = async (to, subject, htmlContent) => {
+module.exports.sendMail = async (to, subject, htmlContent) => {
   try {
     const { data, error } = await resend.emails.send({
       from: "Physioterapia Clinic <onboarding@resend.dev>",
