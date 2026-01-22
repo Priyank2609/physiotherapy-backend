@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 const corsOrigin = {
-  origin: "http://localhost:5173",
+  origin: "https://physioterapiaclinic.vercel.app",
   credentials: true,
 };
 
