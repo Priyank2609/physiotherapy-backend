@@ -1,29 +1,20 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Step 1: Create transporter
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.AUTH_EMAIL,
-    pass: process.env.AUTH_PASSWORD,
-  },
-});
-
-const sendMail = async (to, subject, html) => {
+export const sendMail = async (to, subject, htmlContent) => {
   try {
-    await transporter.sendMail({
-      from: '"Physioterapia Clinic" ',
-
-      to,
-      subject,
-      html,
+    const { data, error } = await resend.emails.send({
+      from: "Physioterapia Clinic <onboarding@resend.dev>",
+      to: to,
+      subject: subject,
+      html: htmlContent,
     });
-    console.log("Email sent successfully to", to);
+
+    if (error) {
+      return console.error("Resend API Error:", error);
+    }
+    console.log("Email sent successfully:", data);
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Resend Network Error:", error);
   }
 };
-
-module.exports = sendMail;
