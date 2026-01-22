@@ -366,10 +366,12 @@ module.exports.updateAppointmentStatus = async (req, res) => {
     </div>
   `;
 
-      await sendMail(
-        appointment.patientEmail,
+      sendMail(
+        updatedAppointment.patientEmail,
         "Update: Your Appointment at Physioterepia",
         emailContent,
+      ).catch((err) =>
+        console.error("Database updated, but email timed out:", err),
       );
     }
 

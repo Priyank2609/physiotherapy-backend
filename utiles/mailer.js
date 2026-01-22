@@ -2,33 +2,29 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465, // Changed from 587
-  secure: true, // Changed from false
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.AUTH_EMAIL,
     pass: process.env.AUTH_PASSWORD,
   },
-  // Add these to make the connection more robust
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 10000,
+  connectionTimeout: 10000,
 });
 
 const sendMail = async (to, subject, html) => {
   try {
-    // Verify the connection configuration before sending
-    await transporter.verify();
-
+    // FIX: Added the email address to the 'from' field
     await transporter.sendMail({
-      from: `"Physioterapia Clinic" `, // Ensure from includes your email
+      from: `"Physioterapia Clinic" <${process.env.AUTH_EMAIL}>`,
       to,
       subject,
       html,
     });
     console.log("Email sent successfully to", to);
-    return true; // Return success
+    return true;
   } catch (error) {
     console.error("Error sending email:", error);
-    return false; // Return failure
+    return false;
   }
 };
 
