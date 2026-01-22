@@ -43,6 +43,9 @@ app.use("/reviews", reviewRoutes);
 app.use("/galleries", galleryRoutes);
 app.use("/contacts", contactRoutes);
 
+app.get("/", (req, res) => {
+  res.send("I am working");
+});
 app.listen(process.env.PORT, () => {
   console.log("I am listening");
 });
