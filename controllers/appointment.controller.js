@@ -329,7 +329,8 @@ module.exports.updateAppointmentStatus = async (req, res) => {
 
       const isCompleted = currentStatus === "completed";
 
-      const reviewFormLink = "http://localhost:5173/review-form";
+      const reviewFormLink =
+        "https://physioterapiaclinic.vercel.app/review-form";
 
       const reviewSection = isCompleted
         ? `<div style="margin-top: 20px; padding: 15px; background-color: #f0f9ff; border-radius: 8px; border: 1px dashed #0ea5e9;">
