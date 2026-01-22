@@ -367,7 +367,7 @@ module.exports.updateAppointmentStatus = async (req, res) => {
   `;
 
       sendMail(
-        updatedAppointment.patientEmail,
+        appointment.patientEmail,
         "Update: Your Appointment at Physioterepia",
         emailContent,
       ).catch((err) =>
