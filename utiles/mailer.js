@@ -1,11 +1,15 @@
-// mailer.js
+// mailer.js - FIXED VERSION
 const Brevo = require("@getbrevo/brevo");
 
 const apiInstance = new Brevo.TransactionalEmailsApi();
 
-apiInstance.setApiKey(
-  Brevo.TransactionalEmailsApiApiKeys.apiKey,
-  process.env.BREVO_API_KEY, // ← your v3 API key from Brevo dashboard
+// THIS is the correct way to set the key (direct property assignment)
+apiInstance.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
+
+// Optional: Log to confirm it's set (remove in production)
+console.log(
+  "API Key set (length):",
+  apiInstance.authentications["api-key"].apiKey?.length || "NOT SET",
 );
 
 const sendMail = async (to, subject, html) => {
@@ -18,20 +22,19 @@ const sendMail = async (to, subject, html) => {
     };
 
     sendSmtpEmail.to = [{ email: to }];
-
     sendSmtpEmail.subject = subject;
     sendSmtpEmail.htmlContent = html;
 
-    // Optional: add replyTo, cc, bcc, attachment, params, etc.
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-
-    console.log("Email sent successfully → ID:", data.messageId);
+    console.log("Email sent successfully → Message ID:", response.messageId);
     return true;
   } catch (err) {
-    console.error("Brevo API error:", err);
-    // Better logging in production:
-    // console.error(err?.response?.body || err.message);
+    console.error("Brevo full error:", err);
+    if (err.response) {
+      console.error("Brevo response:", err.response.data);
+      console.error("Status code:", err.response.status);
+    }
     return false;
   }
 };
