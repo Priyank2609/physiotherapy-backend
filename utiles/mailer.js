@@ -2,18 +2,19 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587, // 🔁 CHANGE THIS
+  secure: false, // 🔁 MUST be false for 587
   auth: {
     user: process.env.AUTH_EMAIL,
     pass: process.env.AUTH_PASSWORD,
   },
-  connectionTimeout: 10000,
+  tls: {
+    rejectUnauthorized: false,
+  },
 });
 
 const sendMail = async (to, subject, html) => {
   try {
-    // FIX: Added the email address to the 'from' field
     await transporter.sendMail({
       from: `"Physioterapia Clinic" <${process.env.AUTH_EMAIL}>`,
       to,
