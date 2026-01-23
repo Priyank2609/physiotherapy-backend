@@ -1,10 +1,13 @@
 const Review = require("../models/review.model");
 
 module.exports.createReview = async (req, res) => {
-  try {
-    const { name, rating, comment, service } = req.body;
+  console.log("hey");
+  console.log(req.body);
 
-    if (!name || !rating || !comment) {
+  try {
+    const { patientName, rating, comment, service } = req.body;
+
+    if (!patientName || !rating || !comment || !service) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -15,7 +18,7 @@ module.exports.createReview = async (req, res) => {
     }
 
     const review = await Review.create({
-      patientName: name,
+      patientName: patientName,
       rating: Number(rating),
       message: comment,
       service: service,

@@ -22,16 +22,18 @@ module.exports.createDoctor = async (req, res) => {
       });
     }
 
+    const parseIfString = (value, fallback) => {
+      if (!value) return fallback;
+      if (typeof value === "string") return JSON.parse(value);
+      return value;
+    };
+
     try {
-      qualifications = qualifications ? JSON.parse(qualifications) : [];
-      availability = availability ? JSON.parse(availability) : {};
-      conditionsTreated = conditionsTreated
-        ? JSON.parse(conditionsTreated)
-        : [];
-      neurologicalExpertise = neurologicalExpertise
-        ? JSON.parse(neurologicalExpertise)
-        : [];
-    } catch (err) {
+      qualifications = parseIfString(qualifications, []);
+      availability = parseIfString(availability, {});
+      conditionsTreated = parseIfString(conditionsTreated, []);
+      neurologicalExpertise = parseIfString(neurologicalExpertise, []);
+    } catch {
       return res.status(400).json({
         success: false,
         message: "Invalid JSON format in request body",
@@ -59,6 +61,13 @@ module.exports.createDoctor = async (req, res) => {
       });
     }
 
+    if (!bio || bio.trim().length < 20) {
+      return res.status(400).json({
+        success: false,
+        message: "Bio must be at least 20 characters",
+      });
+    }
+
     if (!clinicalBackground || clinicalBackground.trim().length < 50) {
       return res.status(400).json({
         success: false,
@@ -68,8 +77,8 @@ module.exports.createDoctor = async (req, res) => {
     }
 
     const existingDoctor = await DoctorModel.findOne({
-      name: name.trim(),
-      specialization: specialization.trim(),
+      name: new RegExp(`^${name.trim()}$`, "i"),
+      specialization: new RegExp(`^${specialization.trim()}$`, "i"),
       isDeleted: false,
     });
 
@@ -80,7 +89,7 @@ module.exports.createDoctor = async (req, res) => {
       });
     }
 
-    const image = req.file?.path;
+    const image = req.file?.filename;
     if (!image) {
       return res.status(400).json({
         success: false,
@@ -92,7 +101,7 @@ module.exports.createDoctor = async (req, res) => {
       name: name.trim(),
       specialization: specialization.trim(),
       experience,
-      profileImage: image,
+      profileImage: `/uploads/${image}`,
       qualifications,
       availability,
       bio,
