@@ -1,30 +1,37 @@
-const SibApiV3Sdk = require("@sendinblue/client");
+// mailer.js
+const Brevo = require("@getbrevo/brevo");
 
-// Create an instance of the transactional emails API
-const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+const apiInstance = new Brevo.TransactionalEmailsApi();
 
-// Set API key
-SibApiV3Sdk.ApiClient.instance.authentications["api-key"].apiKey =
-  process.env.BREVO_API_KEY;
+apiInstance.setApiKey(
+  Brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY, // ← your v3 API key from Brevo dashboard
+);
 
 const sendMail = async (to, subject, html) => {
   try {
-    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail({
-      sender: {
-        email: "priyankprajapati1203@gmail.com",
-        name: "Physioterapia Clinic",
-      },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html,
-    });
+    const sendSmtpEmail = new Brevo.SendSmtpEmail();
 
-    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    sendSmtpEmail.sender = {
+      email: "priyankprajapati1203@gmail.com",
+      name: "Physioterapia Clinic",
+    };
 
-    console.log("Email sent successfully");
+    sendSmtpEmail.to = [{ email: to }];
+
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
+
+    // Optional: add replyTo, cc, bcc, attachment, params, etc.
+
+    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+    console.log("Email sent successfully → ID:", data.messageId);
     return true;
   } catch (err) {
     console.error("Brevo API error:", err);
+    // Better logging in production:
+    // console.error(err?.response?.body || err.message);
     return false;
   }
 };
