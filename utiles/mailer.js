@@ -1,12 +1,11 @@
-// Correct import
 const SibApiV3Sdk = require("@sendinblue/client");
 
-// Initialize the client
-const client = SibApiV3Sdk.ApiClient.instance;
-client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
-
-// Create transactional email API instance
+// Create an instance of the transactional emails API
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+// Set API key
+apiInstance.apiClient.authentications["api-key"].apiKey =
+  process.env.BREVO_API_KEY;
 
 const sendMail = async (to, subject, html) => {
   try {
@@ -16,7 +15,7 @@ const sendMail = async (to, subject, html) => {
         name: "Physioterapia Clinic",
       },
       to: [{ email: to }],
-      subject: subject,
+      subject,
       htmlContent: html,
     });
 
