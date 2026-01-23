@@ -4,7 +4,7 @@ const SibApiV3Sdk = require("@sendinblue/client");
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 // Set API key
-apiInstance.apiClient.authentications["api-key"].apiKey =
+SibApiV3Sdk.ApiClient.instance.authentications["api-key"].apiKey =
   process.env.BREVO_API_KEY;
 
 const sendMail = async (to, subject, html) => {
