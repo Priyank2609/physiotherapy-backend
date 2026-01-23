@@ -16,6 +16,6 @@ module.exports.generateToken = async (user, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Something went wrong", error: error.message });
+      .json({ message: "Something went wrong  .", error: error.message });
   }
 };
