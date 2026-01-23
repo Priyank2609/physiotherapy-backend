@@ -1,17 +1,16 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587, // 🔁 CHANGE THIS
-  secure: false, // 🔁 MUST be false for 587
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.AUTH_EMAIL,
-    pass: process.env.AUTH_PASSWORD,
-  },
-  tls: {
-    rejectUnauthorized: false,
+    user: process.env.BREVO_EMAIL,
+    pass: process.env.BREVO_SMTP_KEY,
   },
 });
+
+module.exports = transporter;
 
 const sendMail = async (to, subject, html) => {
   try {
