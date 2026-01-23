@@ -120,7 +120,7 @@ module.exports.getAllDoctor = async (req, res) => {
     const doctors = await DoctorModel.find({
       isActive: true,
       isDeleted: false,
-    }).sort({ createdAt: -1 });
+    });
 
     if (!doctors || doctors.length === 0) {
       return res.status(404).json({
