@@ -15,13 +15,13 @@ module.exports.createService = async (req, res) => {
       isActive,
     } = req.body;
 
-    // Validate required fields
     if (
       !title ||
       !shortDescription ||
       !longDescription ||
       !benefits ||
       !duration ||
+      !treatments ||
       !price
     ) {
       return res.status(400).json({
@@ -30,7 +30,6 @@ module.exports.createService = async (req, res) => {
       });
     }
 
-    // Parse benefits safely
     let parsedBenefits = [];
     if (Array.isArray(benefits)) {
       parsedBenefits = benefits;
@@ -53,7 +52,6 @@ module.exports.createService = async (req, res) => {
       });
     }
 
-    // Parse treatments safely (optional)
     let parsedTreatments = [];
     if (treatments) {
       if (Array.isArray(treatments)) {
@@ -68,7 +66,6 @@ module.exports.createService = async (req, res) => {
       }
     }
 
-    // Handle images
     const mainImage = req.files?.mainImage?.[0]?.path;
     const secondaryImage = req.files?.secondaryImage?.[0]?.path;
 
@@ -79,7 +76,6 @@ module.exports.createService = async (req, res) => {
       });
     }
 
-    // Create service
     const service = await Service.create({
       title,
       shortDescription,
@@ -235,7 +231,7 @@ module.exports.deleteService = async (req, res) => {
     const service = await Service.findByIdAndUpdate(
       id,
       { isActive: false },
-      { new: true }
+      { new: true },
     );
 
     if (!service) {
