@@ -134,7 +134,9 @@ module.exports.createAppointment = async (req, res) => {
       appointmentDate,
       appointmentTime,
       status: { $in: ["pending", "confirmed"] },
-    });
+    })
+      .populate("doctorId")
+      .populate("serviceId");
 
     if (existingAppointment) {
       return res.status(409).json({
@@ -189,7 +191,7 @@ module.exports.createAppointment = async (req, res) => {
       </tr>
       <tr>
         <td style="padding: 5px 0;"><strong>Status:</strong></td>
-        <td style="color: #0ea5e9; font-weight: bold;">CONFIRMED</td>
+        <td style="color: #0ea5e9; font-weight: bold;">${appointment.status}</td>
       </tr>
     </table>
 
