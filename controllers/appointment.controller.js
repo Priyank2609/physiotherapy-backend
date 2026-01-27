@@ -163,6 +163,8 @@ module.exports.createAppointment = async (req, res) => {
       message,
     });
 
+    console.log(appointment);
+
     if (appointment.patientEmail) {
       const emailContent = `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px;">
