@@ -159,41 +159,40 @@ module.exports.createAppointment = async (req, res) => {
       appointmentDate,
       appointmentTime,
       message,
-    })
+    });
+    const populatedAppointment = await Appointment.findById(appointment._id)
       .populate("doctorId", "name specialization")
       .populate("serviceId", "title");
 
-    console.log(appointment);
-
-    if (appointment.patientEmail) {
+    if (populatedAppointment.patientEmail) {
       const emailContent = `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px;">
     <h2 style="color: #064e3b;">Appointment Confirmed</h2>
 
-    <p>Dear <strong>${appointment.patientName}</strong>,</p>
+    <p>Dear <strong>${populatedAppointment.patientName}</strong>,</p>
 
     <p>Your appointment has been successfully booked at <strong>Physioterepia Clinic</strong>.</p>
 
     <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
       <tr>
         <td style="padding: 5px 0;"><strong>Service:</strong></td>
-        <td>${appointment.serviceId.title}</td>
+        <td>${populatedAppointment.serviceId.title}</td>
       </tr>
       <tr>
         <td style="padding: 5px 0;"><strong>Doctor:</strong></td>
-        <td>${appointment.doctorId.name}</td>
+        <td>${populatedAppointment.doctorId.name}</td>
       </tr>
       <tr>
         <td style="padding: 5px 0;"><strong>Date:</strong></td>
-        <td>${new Date(appointment.appointmentDate).toLocaleDateString()}</td>
+        <td>${new Date(populatedAppointment.appointmentDate).toLocaleDateString()}</td>
       </tr>
       <tr>
         <td style="padding: 5px 0;"><strong>Time:</strong></td>
-        <td>${appointment.appointmentTime}</td>
+        <td>${populatedAppointment.appointmentTime}</td>
       </tr>
       <tr>
         <td style="padding: 5px 0;"><strong>Status:</strong></td>
-        <td style="color: #0ea5e9; font-weight: bold;">${appointment.status}</td>
+        <td style="color: #0ea5e9; font-weight: bold;">${populatedAppointment.status}</td>
       </tr>
     </table>
 
@@ -208,7 +207,7 @@ module.exports.createAppointment = async (req, res) => {
   `;
 
       sendMail(
-        appointment.patientEmail,
+        populatedAppointment.patientEmail,
         "Appointment Confirmed – Physioterepia Clinic",
         emailContent,
       ).catch((err) =>
