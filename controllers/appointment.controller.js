@@ -167,7 +167,7 @@ module.exports.createAppointment = async (req, res) => {
     if (populatedAppointment.patientEmail) {
       const emailContent = `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px;">
-    <h2 style="color: #064e3b;">Appointment Confirmed</h2>
+    <h2 style="color: #064e3b;">Appointment Booked</h2>
 
     <p>Dear <strong>${populatedAppointment.patientName}</strong>,</p>
 
