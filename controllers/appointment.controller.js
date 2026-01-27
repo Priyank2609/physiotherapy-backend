@@ -183,11 +183,11 @@ module.exports.createAppointment = async (req, res) => {
       </tr>
       <tr>
         <td style="padding: 5px 0;"><strong>Date:</strong></td>
-        <td>${new Date(appointment.date).toLocaleDateString()}</td>
+        <td>${new Date(appointment.appointmentDate).toLocaleDateString()}</td>
       </tr>
       <tr>
         <td style="padding: 5px 0;"><strong>Time:</strong></td>
-        <td>${appointment.time}</td>
+        <td>${appointment.appointmentTime}</td>
       </tr>
       <tr>
         <td style="padding: 5px 0;"><strong>Status:</strong></td>
