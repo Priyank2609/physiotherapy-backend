@@ -43,7 +43,7 @@ module.exports.getAllContact = async (req, res) => {
     const contacts = await Contact.find().sort({ createdAt: -1 });
 
     if (contacts.length === 0) {
-      return res.status(400).json({ message: "No contact exists" });
+      return res.status(400).json({ message: "No Enquires exists" });
     }
 
     const getRelativeDateLabel = (date) => {
