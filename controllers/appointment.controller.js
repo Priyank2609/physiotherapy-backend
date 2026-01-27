@@ -161,6 +161,57 @@ module.exports.createAppointment = async (req, res) => {
       message,
     });
 
+    if (appointment.patientEmail) {
+      const emailContent = `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px;">
+    <h2 style="color: #064e3b;">Appointment Confirmed</h2>
+
+    <p>Dear <strong>${appointment.patientName}</strong>,</p>
+
+    <p>Your appointment has been successfully booked at <strong>Physioterepia Clinic</strong>.</p>
+
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+      <tr>
+        <td style="padding: 5px 0;"><strong>Service:</strong></td>
+        <td>${appointment.serviceId.title}</td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0;"><strong>Doctor:</strong></td>
+        <td>${appointment.doctorId.name}</td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0;"><strong>Date:</strong></td>
+        <td>${new Date(appointment.date).toLocaleDateString()}</td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0;"><strong>Time:</strong></td>
+        <td>${appointment.time}</td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 0;"><strong>Status:</strong></td>
+        <td style="color: #0ea5e9; font-weight: bold;">CONFIRMED</td>
+      </tr>
+    </table>
+
+    <p style="margin-top: 20px;">
+      If you have any questions or need to reschedule, please contact us.
+    </p>
+
+    <p>We look forward to assisting you with your recovery.</p>
+
+    <p style="margin-top: 20px;"><strong>Physioterepia Clinic</strong></p>
+  </div>
+  `;
+
+      sendMail(
+        appointment.patientEmail,
+        "Appointment Confirmed – Physioterepia Clinic",
+        emailContent,
+      ).catch((err) =>
+        console.error("Appointment created but email failed:", err),
+      );
+    }
+
     res.status(201).json({
       success: true,
       message: "Appointment booked successfully",
