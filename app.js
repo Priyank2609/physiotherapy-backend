@@ -43,13 +43,6 @@ app.use("/reviews", reviewRoutes);
 app.use("/galleries", galleryRoutes);
 app.use("/contacts", contactRoutes);
 
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    uptime: process.uptime(),
-    timestamp: new Date(),
-  });
-});
 
 app.get("/", (req, res) => {
   res.send("I am working");
