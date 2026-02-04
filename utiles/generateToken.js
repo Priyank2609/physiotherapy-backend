@@ -5,7 +5,7 @@ module.exports.generateToken = async (user, res) => {
     const token = await jwt.sign(
       { id: user.id, role: user.role },
       process.env.SECRET_KEY,
-      { expiresIn: "1m" },
+      { expiresIn: "1d" },
     );
     res.cookie("Physio_Token", token, {
       httpOnly: true,
