@@ -115,18 +115,19 @@ module.exports.createAppointment = async (req, res) => {
 
     // ===== BLOCK PAST TIME BOOKING FOR TODAY =====
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayStr = new Date().toISOString().split("T")[0];
 
-    const bookingDate = new Date(appointmentDate);
-    bookingDate.setHours(0, 0, 0, 0);
+    // Appointment date string
+    const bookingDateStr = new Date(appointmentDate)
+      .toISOString()
+      .split("T")[0];
 
     // Current time in minutes
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
     // If booking is for TODAY → check time
-    if (bookingDate.getTime() === today.getTime()) {
+    if (bookingDateStr === todayStr) {
       if (appointmentMinutes <= currentMinutes) {
         return res.status(400).json({
           success: false,
