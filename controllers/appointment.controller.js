@@ -113,6 +113,28 @@ module.exports.createAppointment = async (req, res) => {
     const appointmentMinutes = toMinutes(appointmentTime);
     console.log("appmin", appointmentMinutes);
 
+    // ===== BLOCK PAST TIME BOOKING FOR TODAY =====
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const bookingDate = new Date(appointmentDate);
+    bookingDate.setHours(0, 0, 0, 0);
+
+    // Current time in minutes
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // If booking is for TODAY → check time
+    if (bookingDate.getTime() === today.getTime()) {
+      if (appointmentMinutes <= currentMinutes) {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot book past time slots",
+        });
+      }
+    }
+
     const fromMinutes = toMinutes(doctor.availability.hours.start);
     console.log("frommin", fromMinutes);
 
