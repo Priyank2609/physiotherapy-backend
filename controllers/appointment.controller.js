@@ -158,7 +158,7 @@ module.exports.createAppointment = async (req, res) => {
       if (diff < 60) {
         return res.status(409).json({
           success: false,
-          message: "This time slot is already booked (1 hour gap required)",
+          message: "This time slot is already booked ",
         });
       }
     }
