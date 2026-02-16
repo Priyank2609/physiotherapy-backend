@@ -5,9 +5,276 @@ const Service = require("../models/service.model");
 const Appointment = require("../models/appointment.model");
 const sendMail = require("../utiles/mailer");
 
+// module.exports.createAppointment = async (req, res) => {
+//   try {
+//     const {
+//       patientName,
+//       patientPhone,
+//       patientEmail,
+//       doctorId,
+//       serviceId,
+//       appointmentDate,
+//       appointmentTime,
+//       message,
+//     } = req.body;
+
+//     if (
+//       !patientName ||
+//       !patientPhone ||
+//       !patientEmail ||
+//       !doctorId ||
+//       !serviceId ||
+//       !appointmentDate ||
+//       !appointmentTime
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All required fields must be provided",
+//       });
+//     }
+
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     if (!emailRegex.test(patientEmail)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid email format",
+//       });
+//     }
+
+//     if (!/^[6-9]\d{9}$/.test(patientPhone)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid phone number",
+//       });
+//     }
+
+//     if (
+//       !mongoose.Types.ObjectId.isValid(doctorId) ||
+//       !mongoose.Types.ObjectId.isValid(serviceId)
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid doctor or service ID",
+//       });
+//     }
+
+//     const doctor = await DoctorModel.findOne({
+//       _id: doctorId,
+//       isActive: true,
+//       isDeleted: false,
+//     });
+
+//     if (!doctor) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Doctor not available",
+//       });
+//     }
+
+//     const appointmentDay = new Date(appointmentDate).toLocaleDateString(
+//       "en-US",
+//       { weekday: "long" },
+//     );
+
+//     console.log(appointmentDay);
+
+//     if (!doctor.availability.days.includes(appointmentDay)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: `Doctor is not available on ${appointmentDay}`,
+//       });
+//     }
+//     const isValidTime12Hour = (time) => {
+//       const regex = /^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/;
+//       return regex.test(time);
+//     };
+
+//     if (!isValidTime12Hour(appointmentTime)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid time format. Use hh:mm AM/PM",
+//       });
+//     }
+
+//     const toMinutes = (time) => {
+//       const [timePart, modifier] = time.split(" ");
+//       let [hours, minutes] = timePart.split(":").map(Number);
+
+//       if (modifier === "PM" && hours !== 12) {
+//         hours += 12;
+//       }
+//       if (modifier === "AM" && hours === 12) {
+//         hours = 0;
+//       }
+
+//       return hours * 60 + minutes;
+//     };
+
+//     const appointmentMinutes = toMinutes(appointmentTime);
+//     console.log("appmin", appointmentMinutes);
+
+//     // ===== BLOCK PAST TIME BOOKING FOR TODAY =====
+
+//     const todayStr = new Date().toISOString().split("T")[0];
+
+//     // Appointment date string
+//     const bookingDateStr = new Date(appointmentDate)
+//       .toISOString()
+//       .split("T")[0];
+
+//     // Current time in minutes
+//     const now = new Date();
+//     const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+//     // If booking is for TODAY → check time
+//     if (bookingDateStr === todayStr) {
+//       if (appointmentMinutes <= currentMinutes) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Cannot book past time slots",
+//         });
+//       }
+//     }
+
+//     const fromMinutes = toMinutes(doctor.availability.hours.start);
+//     console.log("frommin", fromMinutes);
+
+//     const toMinutesLimit = toMinutes(doctor.availability.hours.end);
+//     console.log("tomin", toMinutesLimit);
+
+//     if (
+//       appointmentMinutes < fromMinutes ||
+//       appointmentMinutes >= toMinutesLimit
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Doctor is not available at this time",
+//       });
+//     }
+
+//     const duplicateBooking = await Appointment.findOne({
+//       patientPhone,
+//       appointmentDate,
+//       appointmentTime,
+//       status: { $in: ["pending", "confirmed"] },
+//     });
+
+//     if (duplicateBooking) {
+//       return res.status(409).json({
+//         success: false,
+//         message: "You already have an appointment at this time",
+//       });
+//     }
+
+//     const existingAppointments = await Appointment.find({
+//       doctorId,
+//       appointmentDate,
+//       status: { $in: ["pending", "confirmed"] },
+//     });
+
+//     for (let appt of existingAppointments) {
+//       const bookedMinutes = toMinutes(appt.appointmentTime);
+
+//       // difference between times
+//       const diff = Math.abs(appointmentMinutes - bookedMinutes);
+
+//       if (diff < 60) {
+//         return res.status(409).json({
+//           success: false,
+//           message: "This time slot is already booked ",
+//         });
+//       }
+//     }
+
+//     const service = await Service.findById(serviceId);
+//     if (!service) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Service not found",
+//       });
+//     }
+
+//     const appointment = await Appointment.create({
+//       patientName,
+//       patientPhone,
+//       patientEmail,
+//       doctorId,
+//       serviceId,
+//       appointmentDate,
+//       appointmentTime,
+//       message,
+//     });
+//     const populatedAppointment = await Appointment.findById(appointment._id)
+//       .populate("doctorId", "name specialization")
+//       .populate("serviceId", "title");
+
+//     if (populatedAppointment.patientEmail) {
+//       const emailContent = `
+//   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px;">
+//     <h2 style="color: #064e3b;">Appointment Booked</h2>
+
+//     <p>Dear <strong>${populatedAppointment.patientName}</strong>,</p>
+
+//     <p>Your appointment has been successfully booked at <strong>Physioterepia Clinic</strong>.</p>
+
+//     <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+//       <tr>
+//         <td style="padding: 5px 0;"><strong>Service:</strong></td>
+//         <td>${populatedAppointment.serviceId.title}</td>
+//       </tr>
+//       <tr>
+//         <td style="padding: 5px 0;"><strong>Doctor:</strong></td>
+//         <td>${populatedAppointment.doctorId.name}</td>
+//       </tr>
+//       <tr>
+//         <td style="padding: 5px 0;"><strong>Date:</strong></td>
+//         <td>${new Date(populatedAppointment.appointmentDate).toLocaleDateString()}</td>
+//       </tr>
+//       <tr>
+//         <td style="padding: 5px 0;"><strong>Time:</strong></td>
+//         <td>${populatedAppointment.appointmentTime}</td>
+//       </tr>
+//       <tr>
+//         <td style="padding: 5px 0;"><strong>Status:</strong></td>
+//         <td style="color: #0ea5e9; font-weight: bold;">${populatedAppointment.status}</td>
+//       </tr>
+//     </table>
+
+//     <p style="margin-top: 20px;">
+//       If you have any questions or need to reschedule, please contact us.
+//     </p>
+
+//     <p>We look forward to assisting you with your recovery.</p>
+
+//     <p style="margin-top: 20px;"><strong>Physioterepia Clinic</strong></p>
+//   </div>
+//   `;
+
+//       sendMail(
+//         populatedAppointment.patientEmail,
+//         "Appointment Confirmed – Physioterepia Clinic",
+//         emailContent,
+//       ).catch((err) =>
+//         console.error("Appointment created but email failed:", err),
+//       );
+//     }
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Appointment booked successfully",
+//       data: appointment,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
 module.exports.createAppointment = async (req, res) => {
   try {
-    const {
+    let {
       patientName,
       patientPhone,
       patientEmail,
@@ -18,6 +285,7 @@ module.exports.createAppointment = async (req, res) => {
       message,
     } = req.body;
 
+    // ================= REQUIRED FIELD CHECK =================
     if (
       !patientName ||
       !patientPhone ||
@@ -33,6 +301,10 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    // ================= NORMALIZE TIME =================
+    appointmentTime = appointmentTime.trim().toUpperCase();
+
+    // ================= EMAIL VALIDATION =================
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(patientEmail)) {
       return res.status(400).json({
@@ -41,6 +313,7 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    // ================= PHONE VALIDATION =================
     if (!/^[6-9]\d{9}$/.test(patientPhone)) {
       return res.status(400).json({
         success: false,
@@ -48,6 +321,7 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    // ================= ID VALIDATION =================
     if (
       !mongoose.Types.ObjectId.isValid(doctorId) ||
       !mongoose.Types.ObjectId.isValid(serviceId)
@@ -58,6 +332,7 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    // ================= DOCTOR CHECK =================
     const doctor = await DoctorModel.findOne({
       _id: doctorId,
       isActive: true,
@@ -71,12 +346,11 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    // ================= DAY AVAILABILITY =================
     const appointmentDay = new Date(appointmentDate).toLocaleDateString(
       "en-US",
       { weekday: "long" },
     );
-
-    console.log(appointmentDay);
 
     if (!doctor.availability.days.includes(appointmentDay)) {
       return res.status(400).json({
@@ -84,6 +358,8 @@ module.exports.createAppointment = async (req, res) => {
         message: `Doctor is not available on ${appointmentDay}`,
       });
     }
+
+    // ================= TIME FORMAT VALIDATION =================
     const isValidTime12Hour = (time) => {
       const regex = /^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/;
       return regex.test(time);
@@ -96,51 +372,38 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    // ================= TIME → MINUTES FUNCTION =================
     const toMinutes = (time) => {
       const [timePart, modifier] = time.split(" ");
       let [hours, minutes] = timePart.split(":").map(Number);
 
-      if (modifier === "PM" && hours !== 12) {
-        hours += 12;
-      }
-      if (modifier === "AM" && hours === 12) {
-        hours = 0;
-      }
+      if (modifier === "PM" && hours !== 12) hours += 12;
+      if (modifier === "AM" && hours === 12) hours = 0;
 
       return hours * 60 + minutes;
     };
 
     const appointmentMinutes = toMinutes(appointmentTime);
-    console.log("appmin", appointmentMinutes);
 
-    // ===== BLOCK PAST TIME BOOKING FOR TODAY =====
-
+    // ================= BLOCK PAST TIME =================
     const todayStr = new Date().toISOString().split("T")[0];
-
-    // Appointment date string
     const bookingDateStr = new Date(appointmentDate)
       .toISOString()
       .split("T")[0];
 
-    // Current time in minutes
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-    // If booking is for TODAY → check time
-    if (bookingDateStr === todayStr) {
-      if (appointmentMinutes <= currentMinutes) {
-        return res.status(400).json({
-          success: false,
-          message: "Cannot book past time slots",
-        });
-      }
+    if (bookingDateStr === todayStr && appointmentMinutes <= currentMinutes) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot book past time slots",
+      });
     }
 
+    // ================= DOCTOR WORKING HOURS =================
     const fromMinutes = toMinutes(doctor.availability.hours.start);
-    console.log("frommin", fromMinutes);
-
     const toMinutesLimit = toMinutes(doctor.availability.hours.end);
-    console.log("tomin", toMinutesLimit);
 
     if (
       appointmentMinutes < fromMinutes ||
@@ -152,10 +415,17 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    // ================= DUPLICATE BOOKING CHECK =================
+    const startOfDay = new Date(appointmentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(appointmentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
     const duplicateBooking = await Appointment.findOne({
       patientPhone,
-      appointmentDate,
       appointmentTime,
+      appointmentDate: { $gte: startOfDay, $lte: endOfDay },
       status: { $in: ["pending", "confirmed"] },
     });
 
@@ -166,26 +436,26 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    // ================= DOCTOR SLOT CONFLICT CHECK =================
     const existingAppointments = await Appointment.find({
       doctorId,
-      appointmentDate,
+      appointmentDate: { $gte: startOfDay, $lte: endOfDay },
       status: { $in: ["pending", "confirmed"] },
     });
 
     for (let appt of existingAppointments) {
       const bookedMinutes = toMinutes(appt.appointmentTime);
-
-      // difference between times
       const diff = Math.abs(appointmentMinutes - bookedMinutes);
 
       if (diff < 60) {
         return res.status(409).json({
           success: false,
-          message: "This time slot is already booked ",
+          message: "This time slot is already booked",
         });
       }
     }
 
+    // ================= SERVICE CHECK =================
     const service = await Service.findById(serviceId);
     if (!service) {
       return res.status(404).json({
@@ -194,6 +464,7 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    // ================= CREATE APPOINTMENT =================
     const appointment = await Appointment.create({
       patientName,
       patientPhone,
@@ -204,60 +475,6 @@ module.exports.createAppointment = async (req, res) => {
       appointmentTime,
       message,
     });
-    const populatedAppointment = await Appointment.findById(appointment._id)
-      .populate("doctorId", "name specialization")
-      .populate("serviceId", "title");
-
-    if (populatedAppointment.patientEmail) {
-      const emailContent = `
-  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px;">
-    <h2 style="color: #064e3b;">Appointment Booked</h2>
-
-    <p>Dear <strong>${populatedAppointment.patientName}</strong>,</p>
-
-    <p>Your appointment has been successfully booked at <strong>Physioterepia Clinic</strong>.</p>
-
-    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-      <tr>
-        <td style="padding: 5px 0;"><strong>Service:</strong></td>
-        <td>${populatedAppointment.serviceId.title}</td>
-      </tr>
-      <tr>
-        <td style="padding: 5px 0;"><strong>Doctor:</strong></td>
-        <td>${populatedAppointment.doctorId.name}</td>
-      </tr>
-      <tr>
-        <td style="padding: 5px 0;"><strong>Date:</strong></td>
-        <td>${new Date(populatedAppointment.appointmentDate).toLocaleDateString()}</td>
-      </tr>
-      <tr>
-        <td style="padding: 5px 0;"><strong>Time:</strong></td>
-        <td>${populatedAppointment.appointmentTime}</td>
-      </tr>
-      <tr>
-        <td style="padding: 5px 0;"><strong>Status:</strong></td>
-        <td style="color: #0ea5e9; font-weight: bold;">${populatedAppointment.status}</td>
-      </tr>
-    </table>
-
-    <p style="margin-top: 20px;">
-      If you have any questions or need to reschedule, please contact us.
-    </p>
-
-    <p>We look forward to assisting you with your recovery.</p>
-
-    <p style="margin-top: 20px;"><strong>Physioterepia Clinic</strong></p>
-  </div>
-  `;
-
-      sendMail(
-        populatedAppointment.patientEmail,
-        "Appointment Confirmed – Physioterepia Clinic",
-        emailContent,
-      ).catch((err) =>
-        console.error("Appointment created but email failed:", err),
-      );
-    }
 
     res.status(201).json({
       success: true,
@@ -271,7 +488,6 @@ module.exports.createAppointment = async (req, res) => {
     });
   }
 };
-
 module.exports.getAllAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find()
