@@ -129,6 +129,20 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
+    const duplicateBooking = await Appointment.findOne({
+      patientPhone,
+      appointmentDate,
+      appointmentTime,
+      status: { $in: ["pending", "confirmed"] },
+    });
+
+    if (duplicateBooking) {
+      return res.status(409).json({
+        success: false,
+        message: "You already have an appointment at this time",
+      });
+    }
+
     const existingAppointments = await Appointment.find({
       doctorId,
       appointmentDate,
