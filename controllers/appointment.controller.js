@@ -149,12 +149,6 @@ module.exports.createAppointment = async (req, res) => {
       }
     }
 
-    if (existingAppointments) {
-      return res.status(409).json({
-        success: false,
-        message: "This time slot is already booked",
-      });
-    }
     const service = await Service.findById(serviceId);
     if (!service) {
       return res.status(404).json({
