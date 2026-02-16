@@ -397,7 +397,9 @@ module.exports.createAppointment = async (req, res) => {
 
     console.log("bookingdate", bookingDate);
 
-    const now = new Date();
+    const now = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+    );
 
     console.log("now", now);
 
