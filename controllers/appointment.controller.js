@@ -285,7 +285,7 @@ module.exports.createAppointment = async (req, res) => {
       message,
     } = req.body;
 
-    // ================= REQUIRED FIELD CHECK =================
+    // ================= REQUIRED FIELDS =================
     if (
       !patientName ||
       !patientPhone ||
@@ -321,7 +321,7 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
-    // ================= ID VALIDATION =================
+    // ================= OBJECT ID VALIDATION =================
     if (
       !mongoose.Types.ObjectId.isValid(doctorId) ||
       !mongoose.Types.ObjectId.isValid(serviceId)
@@ -372,7 +372,7 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
-    // ================= TIME → MINUTES FUNCTION =================
+    // ================= TIME TO MINUTES =================
     const toMinutes = (time) => {
       const [timePart, modifier] = time.split(" ");
       let [hours, minutes] = timePart.split(":").map(Number);
@@ -385,20 +385,23 @@ module.exports.createAppointment = async (req, res) => {
 
     const appointmentMinutes = toMinutes(appointmentTime);
 
-    // ================= BLOCK PAST TIME =================
-    const todayStr = new Date().toISOString().split("T")[0];
-    const bookingDateStr = new Date(appointmentDate)
-      .toISOString()
-      .split("T")[0];
+    // ================= BLOCK PAST TIME (IST SAFE) =================
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const bookingDate = new Date(appointmentDate);
+    bookingDate.setHours(0, 0, 0, 0);
 
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-    if (bookingDateStr === todayStr && appointmentMinutes <= currentMinutes) {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot book past time slots",
-      });
+    if (bookingDate.getTime() === today.getTime()) {
+      if (appointmentMinutes <= currentMinutes) {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot book past time slots",
+        });
+      }
     }
 
     // ================= DOCTOR WORKING HOURS =================
@@ -415,16 +418,16 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
-    // ================= DUPLICATE BOOKING CHECK =================
+    // ================= DATE RANGE FOR SAME DAY =================
     const startOfDay = new Date(appointmentDate);
     startOfDay.setHours(0, 0, 0, 0);
 
     const endOfDay = new Date(appointmentDate);
     endOfDay.setHours(23, 59, 59, 999);
 
+    // ================= DUPLICATE BOOKING (ONE PER DAY PER PHONE) =================
     const duplicateBooking = await Appointment.findOne({
       patientPhone,
-      appointmentTime,
       appointmentDate: { $gte: startOfDay, $lte: endOfDay },
       status: { $in: ["pending", "confirmed"] },
     });
@@ -432,7 +435,7 @@ module.exports.createAppointment = async (req, res) => {
     if (duplicateBooking) {
       return res.status(409).json({
         success: false,
-        message: "You already have an appointment at this time",
+        message: "You already have an appointment on this date",
       });
     }
 
