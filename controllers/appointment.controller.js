@@ -129,14 +129,27 @@ module.exports.createAppointment = async (req, res) => {
       });
     }
 
-    const existingAppointment = await Appointment.findOne({
+    const existingAppointments = await Appointment.find({
       doctorId,
       appointmentDate,
-      appointmentTime,
       status: { $in: ["pending", "confirmed"] },
     });
 
-    if (existingAppointment) {
+    for (let appt of existingAppointments) {
+      const bookedMinutes = toMinutes(appt.appointmentTime);
+
+      // difference between times
+      const diff = Math.abs(appointmentMinutes - bookedMinutes);
+
+      if (diff < 60) {
+        return res.status(409).json({
+          success: false,
+          message: "This time slot is already booked (1 hour gap required)",
+        });
+      }
+    }
+
+    if (existingAppointments) {
       return res.status(409).json({
         success: false,
         message: "This time slot is already booked",
