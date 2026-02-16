@@ -384,16 +384,28 @@ module.exports.createAppointment = async (req, res) => {
     };
 
     const appointmentMinutes = toMinutes(appointmentTime);
+    console.log("appoinment min", appointmentMinutes);
 
     // ================= BLOCK PAST TIME (IST SAFE) =================
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    console.log("today", today);
+
     const bookingDate = new Date(appointmentDate);
     bookingDate.setHours(0, 0, 0, 0);
 
+    console.log("bookingdate", bookingDate);
+
     const now = new Date();
+
+    console.log("now", now);
+
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    console.log("cuurentmin", currentMinutes);
+    console.log(bookingDate.getTime() === today.getTime());
+
+    console.log(appointmentMinutes <= currentMinutes);
 
     if (bookingDate.getTime() === today.getTime()) {
       if (appointmentMinutes <= currentMinutes) {
